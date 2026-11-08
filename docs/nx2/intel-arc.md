@@ -1,8 +1,9 @@
 # Intel Arc GPUs and Switch 2 titles
 
-This fork targets Intel Arc GPUs, integrated Xe2 parts included (Lunar Lake's Arc 140V, Arc B-series
-and newer). The changes here assume the Intel Windows driver; the Vulkan driver family is the
-number before the last dot (`32.0.101.9175` is family 101).
+This page documents the Intel Arc policy of the Lichii Arc fork. It targets Intel Arc GPUs,
+integrated Xe2 parts included (Lunar Lake's Arc 140V, Arc B-series and newer). The changes here
+assume the Intel Windows driver; the Vulkan driver family is the number before the last dot
+(`32.0.101.9175` is family 101).
 
 Arc GPUs expose Xe Matrix Extensions (XMX) through `VK_KHR_cooperative_matrix`. Switch 2 titles run
 their tensor work as `HMMA.16816.F16`, and Lichii can lower it to a cooperative matrix multiply

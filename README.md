@@ -10,13 +10,13 @@
   <img src="dist/branding/lichii_icon_with_logo.png" alt="Lichii" width="600">
 </p>
 
-# Lichii
+# Lichii Arc
 
-Lichii is an experimental, open-source Nintendo Switch and Switch 2 emulator written in C++. It builds on Eglantine, Eden, yuzu and Sudachi, preserving their contributions while developing this fork's game compatibility and renderer fixes.
+Lichii Arc is an Intel Arc-focused fork of [Lichii](https://github.com/zortos293/Lichii). It keeps Lichii's game compatibility and renderer fixes while tuning the Vulkan backend for Intel Arc GPUs, integrated Xe2 parts included.
 
-This is an independent fork, not an official release of those upstream projects. Lichii is not affiliated with Nintendo.
+The main change is tensor program handling: Arc GPUs expose Xe matrix extensions through `VK_KHR_cooperative_matrix`, so Switch 2 titles can run their `HMMA.16816.F16` work on hardware instead of the software expansion or the upscale stand-in. See [Intel Arc GPUs and Switch 2 titles](docs/nx2/intel-arc.md) for the policy, log lines and settings.
 
-Visit the [official Lichii website](https://lichii.zortos.me) to find games and compare community compatibility reports.
+This is an independent fork, not an official release of Lichii, Eglantine, Eden, yuzu or Sudachi. Lichii Arc is not affiliated with Nintendo.
 
 ## Downloads and setup
 
