@@ -14,7 +14,7 @@ parts need, and [#876] carries the Intel shader/cache fixes this fork starts fro
 
 | Area | Behaviour |
 |---|---|
-| Native tensor programs | On Intel, a title's native matrix multiplies are kept when the device offers a usable cooperative matrix shape. Without one, the program is rejected and the upscale stand-in runs, as before. `EDEN_NX2_INTEL_HMMA=0` keeps the stand-in for A/B tests. |
+| Native tensor programs | On Intel, a title's native matrix multiplies are kept when the pipeline cache selected a usable cooperative matrix shape. Without one, the program is rejected and the upscale stand-in runs, as before. `EDEN_NX2_INTEL_HMMA=0` keeps the stand-in for A/B tests. |
 | Cooperative matrix shapes | The 16x8x16 register path is used when the device advertises it and its self-test passes. Otherwise the 16x16x16 or 8x16x16 shared-memory path runs with the compute subgroups forced to the guest's 32 lanes. |
 | FP16 | Enabled on Arc, discrete or integrated. The Astral Chain workaround stays only for older Intel Xe iGPUs, whose model name has no "Arc". |
 | Dynamic vertex input | `VK_EXT_vertex_input_dynamic_state` is used on Arc with driver family 101 or newer, integrated parts included. Older Intel drivers keep the fallback. |

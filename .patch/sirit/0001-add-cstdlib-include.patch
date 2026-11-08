@@ -1,0 +1,27 @@
+From 9f1c2f4e0a3b5c6d7e8f9012345678abcdef0123 Mon Sep 17 00:00:00 2001
+From: Lichii Arc <lichii@localhost>
+Date: Sun, 8 Nov 2026 15:40:00 +0000
+Subject: [PATCH] Add missing <cstdlib> include in stream.h
+
+stream.h calls std::abort but relies on another header pulling <cstdlib>
+in. libstdc++ does that, libc++ (used by LLVM-MinGW) does not, so the
+build fails with "no member named 'abort' in namespace 'std'".
+---
+ src/stream.h | 1 +
+ 1 file changed, 1 insertion(+)
+
+diff --git a/src/stream.h b/src/stream.h
+index 3f6f2c1..b7d0a54 100644
+--- a/src/stream.h
++++ b/src/stream.h
+@@ -10,6 +10,7 @@
+ #include <span>
+ #include <cassert>
+ #include <concepts>
+ #include <cstddef>
++#include <cstdlib>
+ #include <functional>
+ #include <string_view>
+ #include <unordered_map>
+-- 
+2.51.2

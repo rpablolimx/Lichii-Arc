@@ -619,6 +619,28 @@ if (ENABLE_QT)
         list(APPEND CMAKE_PREFIX_PATH "${Qt6_DIR}")
     endif()
 
+    if (NOT TARGET double-conversion::double-conversion)
+        include(FetchContent)
+        FetchContent_Declare(
+            double-conversion
+            GIT_REPOSITORY https://github.com/google/double-conversion.git
+            GIT_TAG v3.3.0
+        )
+        set(BUILD_TESTING OFF CACHE BOOL "" FORCE)
+        FetchContent_MakeAvailable(double-conversion)
+        if (TARGET double-conversion AND NOT TARGET double-conversion::double-conversion)
+            add_library(double-conversion::double-conversion ALIAS double-conversion)
+        endif()
+        if (NOT TARGET WrapSystemDoubleConversion::WrapSystemDoubleConversion)
+            add_library(WrapSystemDoubleConversion::WrapSystemDoubleConversion INTERFACE IMPORTED)
+            target_link_libraries(WrapSystemDoubleConversion::WrapSystemDoubleConversion INTERFACE double-conversion)
+            target_include_directories(WrapSystemDoubleConversion::WrapSystemDoubleConversion INTERFACE "${double-conversion_SOURCE_DIR}")
+        endif()
+        if (NOT TARGET WrapRt::WrapRt)
+            add_library(WrapRt::WrapRt INTERFACE IMPORTED)
+        endif()
+    endif()
+
     find_package(Qt6 REQUIRED COMPONENTS Core)
 
     if (NOT DEFINED QT_TARGET_PATH)

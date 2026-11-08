@@ -9,6 +9,7 @@
 option(ENABLE_LTO "Enable Link-Time Optimization (LTO)" OFF)
 
 if (ENABLE_LTO)
+    cmake_policy(SET CMP0069 NEW)
     include(CheckIPOSupported)
     check_ipo_supported(RESULT COMPILER_SUPPORTS_LTO)
     if(NOT COMPILER_SUPPORTS_LTO)

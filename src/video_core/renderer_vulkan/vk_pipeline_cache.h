@@ -133,6 +133,12 @@ public:
 
     [[nodiscard]] GraphicsPipeline* CurrentGraphicsPipeline();
 
+    /// Returns true when guest tensor operations run on a tested cooperative matrix path.
+    [[nodiscard]] bool HasCooperativeHmmaPath() const {
+        return profile.support_cooperative_hmma || profile.support_cooperative_hmma_16x16x16 ||
+               profile.support_cooperative_hmma_8x16x16;
+    }
+
     void TickFrame();
 
     [[nodiscard]] ComputePipeline* CurrentComputePipeline(u64& native_key);

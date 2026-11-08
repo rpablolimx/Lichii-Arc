@@ -2917,7 +2917,7 @@ bool RasterizerVulkan::EmulatesNativeTensorPrograms() const {
     const auto driver = device.GetDriverID();
     if (driver == VK_DRIVER_ID_INTEL_OPEN_SOURCE_MESA ||
         driver == VK_DRIVER_ID_INTEL_PROPRIETARY_WINDOWS) {
-        return device.UsesIntelCooperativeHmma();
+        return device.UsesIntelCooperativeHmma() && pipeline_cache.HasCooperativeHmmaPath();
     }
     return true;
 }
