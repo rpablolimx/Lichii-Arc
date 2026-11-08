@@ -2390,7 +2390,8 @@ ComputePipelineCacheEntry PipelineCache::CreateComputePipeline(
     const bool uses_tensor_stand_in =
         Settings::GetCurrentProgramID() != 0x040074A01BF12000ULL &&
         (driver_id == VK_DRIVER_ID_INTEL_OPEN_SOURCE_MESA ||
-         driver_id == VK_DRIVER_ID_INTEL_PROPRIETARY_WINDOWS);
+         driver_id == VK_DRIVER_ID_INTEL_PROPRIETARY_WINDOWS) &&
+        !device.UsesIntelCooperativeHmma();
     if (env.IsNativeProgram() && uses_tensor_stand_in) {
         for (const auto* block : program.blocks) {
             for (const auto& inst : block->Instructions()) {

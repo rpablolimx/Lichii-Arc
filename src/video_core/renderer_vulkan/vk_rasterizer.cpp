@@ -2912,11 +2912,14 @@ bool RasterizerVulkan::UsesNvidiaDlss() const {
 }
 
 bool RasterizerVulkan::EmulatesNativeTensorPrograms() const {
-    // Intel's software tensor expansion can stall compilation. Use the upscale stand-in on
-    // both Intel drivers; native tensor hardware support is a separate backend.
+    // Intel's software tensor expansion can stall compilation: keep native programs only where
+    // cooperative matrices run them on hardware, otherwise reject them for the upscale stand-in.
     const auto driver = device.GetDriverID();
-    return driver != VK_DRIVER_ID_INTEL_OPEN_SOURCE_MESA &&
-           driver != VK_DRIVER_ID_INTEL_PROPRIETARY_WINDOWS;
+    if (driver == VK_DRIVER_ID_INTEL_OPEN_SOURCE_MESA ||
+        driver == VK_DRIVER_ID_INTEL_PROPRIETARY_WINDOWS) {
+        return device.UsesIntelCooperativeHmma();
+    }
+    return true;
 }
 
 bool RasterizerVulkan::SupportsGameDlssNetwork() const {

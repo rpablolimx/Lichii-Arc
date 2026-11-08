@@ -660,11 +660,8 @@ Device::Device(VkInstance instance_, vk::PhysicalDevice physical_, VkSurfaceKHR 
         }
     }
 
-    const bool is_intel_discrete =
-        is_intel_windows &&
-        properties.properties.deviceType == VK_PHYSICAL_DEVICE_TYPE_DISCRETE_GPU;
-    if (features.shader_float16_int8.shaderFloat16 && is_intel_windows && !is_intel_discrete) {
-        // Keep the Astral Chain workaround for Intel integrated GPUs, but allow FP16 on Arc.
+    // Intel Xe iGPUs break Astral Chain with float16 math; Arc (Xe2 integrated included) keeps it.
+    if (features.shader_float16_int8.shaderFloat16 && is_intel_windows && !IsIntelArc()) {
         LOG_WARNING(Render_Vulkan, "Intel has broken float16 math");
         features.shader_float16_int8.shaderFloat16 = false;
     }
@@ -783,6 +780,20 @@ Device::Device(VkInstance instance_, vk::PhysicalDevice physical_, VkSurfaceKHR 
     if (host_float16_supported) {
         features.shader_float16_int8.shaderFloat16 = VK_TRUE;
     }
+
+    if (is_intel_windows) {
+        const std::string_view hmma = cooperative_hmma_16x8x16   ? "16x8x16"
+                                      : cooperative_hmma_16x16x16 ? "16x16x16"
+                                      : cooperative_hmma_8x16x16  ? "8x16x16"
+                                                                  : "none";
+        LOG_INFO(Render_Vulkan,
+                 "Intel profile: {} | {} | driver {}.{} | Arc={} | float16_math={} | cooperative "
+                 "HMMA={}",
+                 properties.properties.deviceName, is_integrated ? "integrated" : "discrete",
+                 properties.properties.driverVersion >> 14,
+                 properties.properties.driverVersion & 0x3fff, IsIntelArc(), float16_math, hmma);
+    }
+
     logical = vk::Device::Create(physical, queue_cis, ExtensionListForVulkan(loaded_extensions), first_next, dld);
 
     graphics_queue = logical.GetQueue(graphics_family);
@@ -1502,19 +1513,18 @@ bool Device::GetSuitability(bool requires_swapchain) {
     }
 
     // Intel Windows uses (major << 14) | minor, not Vulkan API-version encoding.
-    // Test the advertised feature on modern discrete GPUs; retain the legacy/iGPU fallback.
+    // The advertised feature works on modern Arc drivers, integrated Arc included.
     if (extensions.vertex_input_dynamic_state) {
-        const bool modern_intel_discrete =
-            driver_id == VK_DRIVER_ID_INTEL_PROPRIETARY_WINDOWS &&
-            properties.properties.deviceType == VK_PHYSICAL_DEVICE_TYPE_DISCRETE_GPU &&
+        const bool modern_intel_arc =
+            driver_id == VK_DRIVER_ID_INTEL_PROPRIETARY_WINDOWS && IsIntelArc() &&
             (properties.properties.driverVersion >> 14) >= 101;
-        if (modern_intel_discrete) {
+        if (modern_intel_arc) {
             LOG_INFO(Render_Vulkan,
-                     "Using advertised dynamic vertex input on modern discrete Intel driver {}.{}",
+                     "Using advertised dynamic vertex input on modern Intel Arc driver {}.{}",
                      properties.properties.driverVersion >> 14,
                      properties.properties.driverVersion & 0x3fff);
         }
-        if ((driver_id == VK_DRIVER_ID_INTEL_PROPRIETARY_WINDOWS && !modern_intel_discrete) ||
+        if ((driver_id == VK_DRIVER_ID_INTEL_PROPRIETARY_WINDOWS && !modern_intel_arc) ||
             (driver_id == VK_DRIVER_ID_NVIDIA_PROPRIETARY &&
              properties.properties.driverVersion < NvidiaDriverVersion(580, 119, 2))) {
             LOG_WARNING(Render_Vulkan, "Disabling broken VK_EXT_vertex_input_dynamic_state");

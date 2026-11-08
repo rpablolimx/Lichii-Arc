@@ -17,6 +17,7 @@ This contains documentation created by developers, build instructions, guideline
 - **[Platform-Specific Caveats](./Caveats.md)**
 - **[The NVIDIA SM86 (Maxwell) GPU](./NvidiaGpu.md)**
 - **[AMD GPUs and Switch 2 titles](./nx2/amd.md)**
+- **[Intel Arc GPUs and Switch 2 titles](./nx2/intel-arc.md)**
 - **[Driver Bugs](./DriverBugs.md)**
 - **[Building Older Commits](./build/OlderCommits.md)**
 - Subsystems:

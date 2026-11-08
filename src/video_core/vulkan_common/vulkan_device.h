@@ -14,6 +14,7 @@
 #include <set>
 #include <span>
 #include <string>
+#include <string_view>
 #include "common/container/unordered_map.h"
 #include <vector>
 
@@ -697,6 +698,21 @@ FN_MAX_LIMIT_LIST
         return cooperative_hmma_8x16x16;
     }
 
+    /// Returns true if any cooperative matrix shape can run the guest's HMMA.16816.F16.
+    bool HasCooperativeHmmaPath() const {
+        return cooperative_hmma_16x8x16 || cooperative_hmma_16x16x16 || cooperative_hmma_8x16x16;
+    }
+
+    /// Whether Intel guest tensor programs should use cooperative matrix hardware.
+    /// EDEN_NX2_INTEL_HMMA=0 keeps the upscale stand-in for A/B tests.
+    bool UsesIntelCooperativeHmma() const {
+        static const bool disabled = [] {
+            const char* value = std::getenv("EDEN_NX2_INTEL_HMMA");
+            return value != nullptr && value[0] == '0';
+        }();
+        return HasCooperativeHmmaPath() && !disabled;
+    }
+
     /// Returns true if the device supports VK_KHR_shader_quad_control.
     bool IsKhrShaderQuadControlSupported() const {
         return extensions.shader_quad_control && features.shader_quad_control.shaderQuadControl;
@@ -1039,6 +1055,14 @@ FN_MAX_LIMIT_LIST
     /// Returns true for an integrated GPU (its device-local memory is system memory).
     bool IsIntegrated() const {
         return is_integrated;
+    }
+
+    /// Returns true for Intel Arc GPUs, discrete or integrated (Xe2 iGPUs use the Arc brand).
+    bool IsIntelArc() const {
+        const VkDriverIdKHR id = GetDriverID();
+        return (id == VK_DRIVER_ID_INTEL_PROPRIETARY_WINDOWS ||
+                id == VK_DRIVER_ID_INTEL_OPEN_SOURCE_MESA) &&
+               GetModelName().find("Arc") != std::string_view::npos;
     }
 
     /// Returns true when a known debugging tool is attached.
