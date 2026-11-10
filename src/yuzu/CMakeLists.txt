@@ -15,7 +15,12 @@ endif()
 find_package(Qt6 REQUIRED COMPONENTS Widgets)
 
 if(YUZU_TESTS)
-    add_subdirectory(../tests/qt_compatibility ${CMAKE_BINARY_DIR}/qt_compatibility_tests)
+    # A static Qt build may not ship the Test module. The compatibility report tests need it,
+    # so skip them rather than fail the whole configure.
+    find_package(Qt6 QUIET COMPONENTS Test)
+    if(TARGET Qt6::Test)
+        add_subdirectory(../tests/qt_compatibility ${CMAKE_BINARY_DIR}/qt_compatibility_tests)
+    endif()
 endif()
 
 add_executable(yuzu

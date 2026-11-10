@@ -314,5 +314,8 @@ if (NOT MSVC)
         $<$<COMPILE_LANGUAGE:C,CXX>:-Wno-conversion>
         $<$<COMPILE_LANGUAGE:C,CXX>:-Wno-unused-variable>
         $<$<COMPILE_LANGUAGE:C,CXX>:-Wno-unused-parameter>
-        $<$<COMPILE_LANGUAGE:C,CXX>:-Wno-missing-field-initializers>)
+        $<$<COMPILE_LANGUAGE:C,CXX>:-Wno-missing-field-initializers>
+        # fssystem_bucket_tree.h deallocates the tree entry with the sized operator delete,
+        # which clang only uses with this flag (the core library sets it too).
+        $<$<CXX_COMPILER_ID:Clang>:-fsized-deallocation>)
 endif()
