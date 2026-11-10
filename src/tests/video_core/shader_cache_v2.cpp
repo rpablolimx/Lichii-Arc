@@ -685,6 +685,21 @@ TEST_CASE("Shader cache v2: a program record lowers again to the code it holds",
     REQUIRE(V2::RelowerProgram(broken) == nullptr);
 }
 
+TEST_CASE("Shader cache v2: the matrix policy is part of a program's key",
+          "[video_core][shader_cache_v2]") {
+    // The same native program lowers to different code with and without the software matrix
+    // expansion, so the record of one must not answer for the other. On the default policy the
+    // key stays the one a build without the flag writes, and its logs keep hitting.
+    V2::ProgramRecord emulated = LowerTestProgram(PlainProgram, false, 0x2000);
+    const u64 native_key = V2::ProgramKey(emulated);
+    emulated.reject_matrix = true;
+    REQUIRE(V2::ProgramKey(emulated) != native_key);
+    const auto decoded = V2::DecodeProgram(V2::EncodeProgram(emulated));
+    REQUIRE(decoded.has_value());
+    REQUIRE(decoded->reject_matrix);
+    REQUIRE(V2::ProgramKey(*decoded) == V2::ProgramKey(emulated));
+}
+
 TEST_CASE("Shader cache v2: a program is recorded once per lowering", "[video_core][shader_cache_v2]") {
     TempDir temp;
     const auto file = temp.path / "cache.bin";

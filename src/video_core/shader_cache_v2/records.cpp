@@ -160,7 +160,11 @@ u64 ProgramKey(const ProgramKeyInputs& inputs) {
     put(&inputs.geometry, sizeof(inputs.geometry));
     put(&inputs.tessellation_stage, sizeof(inputs.tessellation_stage));
     put(&inputs.native_code_address, sizeof(inputs.native_code_address));
-    put(&inputs.reject_matrix, sizeof(inputs.reject_matrix));
+    // Mixed in only when set, so the key of a program on the default policy stays the one
+    // builds without the flag wrote, and their logs keep hitting.
+    if (inputs.reject_matrix) {
+        put(&inputs.reject_matrix, sizeof(inputs.reject_matrix));
+    }
     put(&trap_count, sizeof(trap_count));
     put(inputs.verified_traps.data(), inputs.verified_traps.size_bytes());
     put(&native_count, sizeof(native_count));
