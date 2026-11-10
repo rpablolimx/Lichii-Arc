@@ -1024,7 +1024,9 @@ bool KeplerCompute::EmulatesNativeTensorPrograms() const {
     // Donkey Kong Bananza's programs must run: rejected, they write nothing and the screen is
     // purple from its mode select on.
     constexpr u64 DonkeyKongBananzaProgramId = 0x040074A01BF12000ULL;
-    return Settings::GetCurrentProgramID() == DonkeyKongBananzaProgramId ||
+    // Without a bound rasterizer (the tests lower a program before binding one) there is no
+    // device policy to ask, so keep the program as upstream does instead of rejecting it.
+    return Settings::GetCurrentProgramID() == DonkeyKongBananzaProgramId || rasterizer == nullptr ||
            rasterizer->EmulatesNativeTensorPrograms();
 }
 
