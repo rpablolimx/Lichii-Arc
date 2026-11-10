@@ -19,6 +19,7 @@ parts need, and [#876] carries the Intel shader/cache fixes this fork starts fro
 | FP16 | Enabled on Arc, discrete or integrated. The Astral Chain workaround stays only for older Intel Xe iGPUs, whose model name has no "Arc". |
 | Dynamic vertex input | `VK_EXT_vertex_input_dynamic_state` is used on Arc with driver family 101 or newer, integrated parts included. Older Intel drivers keep the fallback. |
 | Descriptor buffer | Left at the driver's defaults; this fork does not force descriptor buffers or push descriptors on Intel. |
+| Shader cache v2 | Captured native programs and their lowering are cached per program, keyed by the Intel native/stand-in decision. `EDEN_NX2_INTEL_HMMA` flipping the decision lowers the affected programs again instead of reusing the other path's code. |
 
 The Arc 140V advertises only the 8x16x16 fp16 shape, so it takes the shared-memory path and does
 not need the 16x8x16 self-test. Discrete Arc parts may advertise 16x8x16 and take the register path.

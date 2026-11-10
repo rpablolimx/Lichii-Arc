@@ -6,6 +6,11 @@
 # SPDX-License-Identifier: GPL-2.0-or-later
 -->
 
+<h2 align="center">⚠️ Lichii has no official website ⚠️</h2>
+
+> [!CAUTION]
+> **Lichii has no official website.** The only site run by this project is the **game compatibility website, [lichii.zortos.me](https://lichii.zortos.me)**, for compatibility reports only. Download Lichii **only** from this repository's [releases page](https://github.com/zortos293/Lichii/releases). Any other "Lichii" website or download (such as lichii.org) is not ours and may contain malware ([#545](https://github.com/zortos293/Lichii/issues/545)).
+
 <p align="center">
   <img src="dist/branding/lichii_icon_with_logo.png" alt="Lichii" width="600">
 </p>
@@ -17,6 +22,8 @@ Lichii Arc is an Intel Arc-focused fork of [Lichii](https://github.com/zortos293
 The main change is tensor program handling: Arc GPUs expose Xe matrix extensions through `VK_KHR_cooperative_matrix`, so Switch 2 titles can run their `HMMA.16816.F16` work on hardware instead of the software expansion or the upscale stand-in. See [Intel Arc GPUs and Switch 2 titles](docs/nx2/intel-arc.md) for the policy, log lines and settings.
 
 This is an independent fork, not an official release of Lichii, Eglantine, Eden, yuzu or Sudachi. Lichii Arc is not affiliated with Nintendo.
+
+Visit the [Lichii game compatibility website](https://lichii.zortos.me) to find games and compare community compatibility reports.
 
 ## Downloads and setup
 

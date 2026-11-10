@@ -5,6 +5,7 @@
 // clang-format off
 #include <windows.h>
 #include <sysinfoapi.h>
+#include <psapi.h>
 // clang-format on
 #else
 #include <sys/types.h>
@@ -17,9 +18,37 @@
 #endif
 #endif
 
+#ifdef __linux__
+#include <algorithm>
+#include <cstdlib>
+#include <fstream>
+#include <string>
+#include <string_view>
+#endif
+
 #include "common/memory_detect.h"
 
 namespace Common {
+
+#ifdef _WIN32
+namespace {
+// PROCESS_MEMORY_COUNTERS_EX2 is newer than some SDKs and MinGW's psapi.h; the layout is fixed.
+struct ProcessMemoryCountersEx2 {
+    DWORD cb;
+    DWORD PageFaultCount;
+    SIZE_T PeakWorkingSetSize;
+    SIZE_T WorkingSetSize;
+    SIZE_T QuotaPeakPagedPoolUsage;
+    SIZE_T QuotaPagedPoolUsage;
+    SIZE_T QuotaPeakNonPagedPoolUsage;
+    SIZE_T QuotaNonPagedPoolUsage;
+    SIZE_T PagefileUsage;
+    SIZE_T PeakPagefileUsage;
+    SIZE_T PrivateUsage;
+    SIZE_T PrivateWorkingSetSize;
+};
+} // Anonymous namespace
+#endif
 
 // Detects the RAM and Swapfile sizes
 static MemoryInfo Detect() {
@@ -67,6 +96,64 @@ static MemoryInfo Detect() {
 const MemoryInfo& GetMemInfo() {
     static MemoryInfo mem_info = Detect();
     return mem_info;
+}
+
+ProcessMemoryUsage GetProcessMemoryUsage() {
+    ProcessMemoryUsage usage{};
+#ifdef _WIN32
+    ProcessMemoryCountersEx2 counters{};
+    counters.cb = sizeof(counters);
+    if (GetProcessMemoryInfo(GetCurrentProcess(),
+                             reinterpret_cast<PROCESS_MEMORY_COUNTERS*>(&counters),
+                             sizeof(counters))) {
+        usage.commit = counters.PrivateUsage;
+        usage.working_set = counters.WorkingSetSize;
+        usage.private_working_set = counters.PrivateWorkingSetSize;
+    } else {
+        // Systems older than PROCESS_MEMORY_COUNTERS_EX2 report less, not nothing.
+        PROCESS_MEMORY_COUNTERS_EX older{};
+        older.cb = sizeof(older);
+        if (GetProcessMemoryInfo(GetCurrentProcess(),
+                                 reinterpret_cast<PROCESS_MEMORY_COUNTERS*>(&older),
+                                 sizeof(older))) {
+            usage.commit = older.PrivateUsage;
+            usage.working_set = older.WorkingSetSize;
+        }
+    }
+    PERFORMANCE_INFORMATION performance{};
+    performance.cb = sizeof(performance);
+    if (GetPerformanceInfo(&performance, sizeof(performance))) {
+        usage.system_commit = u64{performance.CommitTotal} * performance.PageSize;
+        usage.system_commit_limit = u64{performance.CommitLimit} * performance.PageSize;
+    }
+#elif defined(__linux__)
+    std::ifstream status{"/proc/self/status"};
+    for (std::string line; std::getline(status, line);) {
+        const auto field = [&line](std::string_view key) -> u64 {
+            if (!line.starts_with(key)) {
+                return 0;
+            }
+            return std::strtoull(line.c_str() + key.size(), nullptr, 10) << 10;
+        };
+        usage.commit = (std::max)(usage.commit, field("VmData:"));
+        usage.working_set = (std::max)(usage.working_set, field("VmRSS:"));
+        usage.private_working_set = (std::max)(usage.private_working_set, field("RssAnon:"));
+    }
+#endif
+    return usage;
+}
+
+std::optional<u64> GetSystemCommitRoom() {
+#ifdef _WIN32
+    PERFORMANCE_INFORMATION performance{};
+    performance.cb = sizeof(performance);
+    if (GetPerformanceInfo(&performance, sizeof(performance))) {
+        const u64 limit = performance.CommitLimit;
+        const u64 committed = performance.CommitTotal;
+        return (committed < limit ? limit - committed : 0) * performance.PageSize;
+    }
+#endif
+    return std::nullopt;
 }
 
 } // namespace Common
